@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>{{ article.title }}</title>
-    <url>{{ article.url }}</url>
-    <content><![CDATA[{{ article.content | safe }}]]></content>
+    <title>对比学习在推荐系统中的应用</title>
+    <url>/2023/08/07/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0%E5%9C%A8%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/</url>
+    <content><![CDATA[<h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><p>对比学习的主要思想是将相似的样本的表示相近，而不相似的远离。对比学习可以用到监督和无监督的场景下，并且目前在CV、NLP、推荐等领域中取得了较好的性能。本文将介绍和总结对比学习的基础以及其应用</p>
+]]></content>
   </entry>
 </search>
