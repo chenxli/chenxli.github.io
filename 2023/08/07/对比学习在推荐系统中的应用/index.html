@@ -20,15 +20,15 @@
     var CONFIG = {"hostname":"chenxli.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="引言对比学习的主要思想是将相似的样本的表示相近，而不相似的远离。对比学习可以用到监督和无监督的场景下，并且目前在CV、NLP、推荐等领域中取得了较好的性能。本文将介绍和总结对比学习的基础以及其应用">
+  <meta name="description" content="引言对比学习的主要思想是将相似的样本的表示相近，而不相似的远离。对比学习可以用到监督和无监督的场景下，并且目前在CV、NLP、推荐等领域中取得了较好的性能。本文将介绍和总结对比学习的基础以及其应用 对比学习基础 损失函数  NCE（noise-contrastive estimation）：是估计统计模型的参数的一种方法，主要通过学习数据分布和噪声分布之间的区别。原始的NCE只包含一个正负样本对。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="对比学习在推荐系统中的应用">
 <meta property="og:url" content="https://chenxli.github.io/2023/08/07/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0%E5%9C%A8%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/index.html">
 <meta property="og:site_name" content="XiLi&#39;s Blog">
-<meta property="og:description" content="引言对比学习的主要思想是将相似的样本的表示相近，而不相似的远离。对比学习可以用到监督和无监督的场景下，并且目前在CV、NLP、推荐等领域中取得了较好的性能。本文将介绍和总结对比学习的基础以及其应用">
+<meta property="og:description" content="引言对比学习的主要思想是将相似的样本的表示相近，而不相似的远离。对比学习可以用到监督和无监督的场景下，并且目前在CV、NLP、推荐等领域中取得了较好的性能。本文将介绍和总结对比学习的基础以及其应用 对比学习基础 损失函数  NCE（noise-contrastive estimation）：是估计统计模型的参数的一种方法，主要通过学习数据分布和噪声分布之间的区别。原始的NCE只包含一个正负样本对。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2023-08-07T13:56:12.000Z">
-<meta property="article:modified_time" content="2023-08-08T15:07:38.341Z">
+<meta property="article:modified_time" content="2023-08-08T15:14:51.366Z">
 <meta property="article:author" content="XiLi&#39;s Blog">
 <meta name="twitter:card" content="summary">
 
@@ -223,7 +223,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-08-08 23:07:38" itemprop="dateModified" datetime="2023-08-08T23:07:38+08:00">2023-08-08</time>
+                <time title="修改时间：2023-08-08 23:14:51" itemprop="dateModified" datetime="2023-08-08T23:14:51+08:00">2023-08-08</time>
               </span>
 
           
@@ -239,14 +239,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>98</span>
+              <span>1.8k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>1 分钟</span>
+              <span>2 分钟</span>
             </span>
 
         </div>
@@ -259,6 +259,58 @@
 
       
         <h3 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h3><p>对比学习的主要思想是将相似的样本的表示相近，而不相似的远离。对比学习可以用到监督和无监督的场景下，并且目前在CV、NLP、推荐等领域中取得了较好的性能。本文将介绍和总结对比学习的基础以及其应用</p>
+<h3 id="对比学习基础"><a href="#对比学习基础" class="headerlink" title="对比学习基础"></a>对比学习基础</h3><ol>
+<li><p>损失函数</p>
+<ul>
+<li><p>NCE（noise-contrastive estimation）：是估计统计模型的参数的一种方法，主要通过学习数据分布和噪声分布之间的区别。原始的NCE只包含一个正负样本对。广义的NCE包含多个正样本或负样本。下式中，$x$表示数据，$y$表示噪声。</p>
+<p>$J_T(\theta)&#x3D;\frac{1}{2T}\sum\limits_t \ln[h(x_t;\theta)]+\ln[1-h(y_t;\theta)]$</p>
+<p>其中：</p>
+<p>$h(\bold{u};\theta)&#x3D;\frac{1}{1+exp[-G(\bold{u};\theta)]}$</p>
+<p>$G(\bold{u};\theta)&#x3D;\ln p_m(\bold{u};\theta)-\ln p_n(\bold{u})$</p>
+</li>
+<li><p>InfoNCE: 在CPC中提出，使用分类交叉熵损失在一组负样本中识别正样本。公式如下：</p>
+<p>$L_N&#x3D;-\mathop{\mathbb{E}}\limits_X[\log \frac{f_k(x_{t+k},c_t)}{\sum_{x_j\in X} f_k(x_j, c_t)}]$</p>
+</li>
+<li><p>Triplet loss: 三元组损失，最初是由谷歌在FaceNet中提出。主要用于识别在不同角度和姿势下的人脸。下式中加号在右下角表示$max(x,0)$。$x_i^a$表示anchor，$x_i^p$表示同一张人脸的不同照片，作为正样本，$x_i^n$表示其他人脸，作为负样本。下式主要是用于拉近$x_i^a$和$x_i^p$的距离而拉远$x_i^a$和$x_i^n$的距离。</p>
+<p>$\sum\limits_i^N [|f(x_i^a)-f(x_i^p)|_2^2-|f(x_i^a)-f(x_i^n)|<em>2^2+\alpha]</em>+$</p>
+</li>
+<li><p>N-pair Loss： Multi-Class N-pair loss，是将Triplet loss泛化到与多个负样本进行对比。</p>
+<p>$\mathcal{L}({x,x^+,{x_i}<em>{i&#x3D;1}^{N-1}};f)&#x3D;\log(1+\sum\limits</em>{i&#x3D;1}^{N-1} \exp(f^T f_i-f^T f^+))&#x3D;-\log\frac{\exp{(f^Tf^+)}}{\exp{(f^T f^+)+\sum\limits_{i&#x3D;1}^{L-1}}\exp(f^Tf_i)}$</p>
+</li>
+</ul>
+</li>
+<li><p>衡量标准</p>
+<p>对比学习算法具有两个关键属性alignment和uniformity，很多有效的对比学习算法正是较好地满足了这两种性质。</p>
+<ul>
+<li><p>alignment：衡量正例样本间的近似程度；</p>
+</li>
+<li><p>uniformity：衡量特征向量在超球体上的分布的均匀性</p>
+</li>
+</ul>
+<p>两种性质的评价指标，优化这两个指标能使得下游任务表现更好。</p>
+<p>$\mathcal{L}(f;\alpha)\triangleq \mathbb{E}<em>{(x,y)\sim p</em>{pos}}[|f(x)-f(y)|_2^{\alpha}]$</p>
+<p>$\mathcal{L}<em>{uniform}(f;t)\triangleq \log \mathbb{E}</em>{ {x,y}\mathop{\sim}\limits^{i.i.d.P}P_{data} }[e^{-t|f(x)-f(y)|^2_2}]$</p>
+</li>
+<li><p>关键技术</p>
+<ul>
+<li><p>正负样本的构造</p>
+<ul>
+<li><p>数据增强：给定训练数据，需要进行数据增强来得到更多正样本。正确有效的数据增强技术对于学习好的表征至关重要。比如SimCLR的实验表明，图片的随机裁剪和颜色失真是最有效的两种方式。而对于句子来说，删除或替换可能会导致语义的改变。</p>
+</li>
+<li><p>负样本构造：一般对比学习中使用in-batch negatives，将一个batch内的不相关数据看作负样本。</p>
+</li>
+<li><p>多个模态：正样本对可以是两种模态的数据，比如图片和图片对应描述。</p>
+</li>
+</ul>
+</li>
+<li><p>大的batch size</p>
+<ul>
+<li>在训练期间使用大的batch size是许多对比学习方法成功的一个关键因素。当batch size足够大时，能够提供大量的负样本，使得模型学习更好表征来区别不同样本。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
 
     </div>
 
@@ -334,7 +386,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%95%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%95%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0%E5%9F%BA%E7%A1%80"><span class="nav-number">2.</span> <span class="nav-text">对比学习基础</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
