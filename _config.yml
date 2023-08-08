@@ -5,7 +5,7 @@
 # Site
 title: XiLi's Blog
 subtitle: ''
-description: ''
+description: '磨砺前行路, 不择细流沙'
 keywords:
 author: XiLi's Blog
 language: zh-CN
@@ -128,3 +128,10 @@ live2d:
     height: 450
   mobile:
     show: true
+
+symbols_count_time:
+  symbols: true
+  time: true
+  total_symbols: false
+  total_time: false
+  exclude_codeblock: false
