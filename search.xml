@@ -1,6 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>模型蒸馏技术</title>
+    <url>/2023/08/07/%E6%A8%A1%E5%9E%8B%E8%92%B8%E9%A6%8F%E6%8A%80%E6%9C%AF/</url>
+    <content><![CDATA[<p>模型蒸馏在自然语言处理、计算机视觉和语音识别等领域均有广泛研究。</p>
+<p>模型压缩和加速的四个技术是<strong>设计高效小型网络、剪枝、量化和蒸馏</strong>。蒸馏，就是知识蒸馏，将教师网络（teacher network）的知识迁移到学习网络（student network）上，使得学生网络的性能表现如教师网络一般。我们就可以轻易地将学生网络部署到移动手机和其他边缘设备上。通常，我们会进行两种方向的蒸馏，一种是from deep and large to shallow and small network，另一种是from ensembles of classifiers to individual classifier。 <span id="more"></span></p>
+<p>2015年，Hinton等人[1]首次提出神经网络中的知识蒸馏（Knowledge Distillation, KD）技术/概念。较前者的一些工作[2-3]，这是一个通用而简单的、不同的模型压缩技术。具体而言，第一，与Bucilua等人的工作[2]相比，Hinton等人的工作利用的是教师网络或集成网络（很多个教师网络）的输出logits，而前者使用复杂的集成系统（SVMs, bagged trees, boosted trees等10种基学习器）去预测通过MUNGE生成的伪数据，获取伪标签，然后用这些带有伪标签的伪数据和原始训练数据来训练快速、小型网络，达到“压缩”的目的，特别地，模型大小可压缩100倍到10万倍，执行速度可加速100倍到1万倍；第二，与Li等人的工作[3]相比，Hinton等人的工作使用不同的temperature，充分利用了教师网络输出的小logits，而前者使用1的temperature，另外蒸馏模型效果不佳。Ba和Caruana的工作[4]首次使用logits作为目标，而不是概率值作为目标，这启发了KD。我们通常将这种分类任务中，低概率类别与高概率类别的关系，称之为<strong>暗知识（dark knowledge）</strong>。</p>
+<p>知识蒸馏[1]的原理，简单而言，第一，利用大规模数据训练一个教师网络；第二，利用大规模数据训练一个学生网络，这时候的损失函数由两部分组成：一部分是拿教师和学生网络的数据logits计算蒸馏损失/KL散度；一部分是拿学生网络的输出和数据标签计算交叉熵损失。Hinton等人的工作以手写数字识别和语音识别为例，验证了上述蒸馏的有效性，蒸馏模型确实获得了如教师网络一般的泛化能力。</p>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MzIxMzkwNjM2NQ==&amp;mid=2247507459&amp;idx=1&amp;sn=6c5b89054b097fb90c452eb3bd017bdc&amp;chksm=97ad38d1a0dab1c732ba86f4d02d09de0ae45f71e01f983ad57609a550f43e20a9aa01913e7a&amp;scene=21#wechat_redirect">知识蒸馏解读:soft target和温度系数的好处</a></p>
+<p><img src="https://raw.githubusercontent.com/chenxli/ImgStg/main/20230811003903.png" /></p>
+<p><strong>（ICLR 2015）FitNets</strong> Romero等人的工作[5]不仅利用教师网络的最后输出logits，还利用它的中间隐层参数值(intermediate representations)，训练学生网络，获得又深又细的FitNets。前者是KD的内容弄，后者是作者提出的hint-based training，如下图所示。因为教师网络和学生网络的输出特征图大小不一，通常是提供hint的特征图较大(图中间绿色框的输出)，而被guided的特征图（图中间红色框的输出）较小，作者引入基于卷积的回归器使得特征图大小一致。因为输入是一样的，要求输出尽可能相似，那么中间隐层参数值尽可能相似。</p>
+<p><img src="https://raw.githubusercontent.com/chenxli/ImgStg/main/20230811001906.png" /></p>
+<p><strong>（ICLR 2017）Paying More Attention to Attention</strong> Zagoruyko和Komodakis提出用注意力去做知识迁移[6]，具体而言，用的是activation-based和gradient-based空间注意力图，如图所示。activation-based空间注意力图，构造一个映射函数F，其输入的三维激活值张量，输出是二维空间注意力图。这样的映射函数F，作者给了三种，并且都是有效的。gradient-based空间注意力图使用的是Simonyan et al.的工作[7]，即输入敏感图。简单而言，KD希望教师和学生网络的输出概率分布类似，而Paying more attention to attention希望教师和学生网络的中间激活和原始RGB被激活区域类似。两种知识迁移的效果可以叠加。</p>
+<p><img src="https://raw.githubusercontent.com/chenxli/ImgStg/main/img/20230811005252.png" /></p>
+<p><strong>(NIPS 2017) Learning Efficient Object Detection Models</strong> Chen等人[8]使用KD[1]和hint learning[5]两种方法，将教师Faster R-CNN的知识迁移到学生Faster R-CNN上，如下图所示，针对物体检测，作者将原始KD的交叉熵损失改为类别加权交叉熵损失解决分类中的不平衡问题；针对检测框回归，作者使用教师回归损失作为学生回归损失的upper bound；针对backbone的中间表示，作者使用hint learning 做特征适应。二阶段检测器比起一阶段检测器和anchor-free检测器较复杂，相信KD在未来会被用于一阶段和anchor-free检测器。这篇文章为物体检测和知识蒸馏的结合提供了实践经验。</p>
+<p><img src="https://raw.githubusercontent.com/chenxli/ImgStg/main/img/20230811005309.png" /></p>
+<p><strong>(arXiv 2017)</strong> TuSimple之<strong>Neuron Selectivity Transfer</strong> NST[9]使用Maximum Mean Discrepancy去做中间计算层分布匹配。</p>
+<p><strong>(AAAI 2018)</strong> TuSimple之<strong>DarkRank</strong> DarkRank[10]认为KD使用的知识来自单一样本，忽略不同样本间的关系。因此，作者提出新的知识，该知识来自跨样本相似性。验证的任务是person reidentification、image retrieval。</p>
+<p><strong>(CVPR 2017) A Gift from Knowledge Distillation</strong> Yim等人的工作[11]展示了KD对于以下三种任务有帮助：1、网络快速优化；2、模型压缩；3、迁移学习。作者的知识蒸馏方法是让学生网络的<strong>FSP矩阵(the flow of solution procedure)</strong> 和教师网络的 FSP矩阵尽可能相似。FSP矩阵是指一个卷积网络的两层计算层结果（特征图）的关系，如图所示，用Gramian矩阵去描述这种关系。教师网络的“知识”以数个FSP矩阵的形式被提取出来。最小化教师网络和学生网络的FSP矩阵，知识就从教师蒸馏到学生。作者的实验证明这种知识迁移比FitNet的好。</p>
+<p><img src="https://raw.githubusercontent.com/chenxli/ImgStg/main/20230811003940.png" /></p>
+<p><strong>（arXiv 2019） Contrastive Represenetation Distillation(CRD)</strong> Tian等人的工作[12]指出原始KD适合网络输出为类别分布的情况，不适合跨模态蒸馏（cross-modal distillation）的情况，如将图像处理网络（处理RGB信息）的表示/特征迁移到深度处理网络（处理depth信息），因为这种情况是未定义KL散度的。作者利用对比目标函数（contrastive objetcts）去捕捉结构化特征知识的相关性和高阶输出依赖性。contrastive learning简而言之就是，<strong>学习一个表示，正配对在某metric space上里离得近些，负配对离得远些</strong>。CRD使用如图的三种具体应用场景中，其中模型压缩和集成蒸馏是原始KD适用的任务。对于<strong>域适应</strong>领域中的像素级适应（CycleGAN），特征级适应和输出空间适应（AdaptSegNet）是提升模型适应目标域数据的三个角度。原始KD就是输出空间蒸馏，CRD就是特征蒸馏，两者可以叠加使用。</p>
+<p><img src="https://raw.githubusercontent.com/chenxli/ImgStg/main/20230811004018.png" /></p>
+<p><strong>（arXiv 2019）Teacher Assistant Knowledge Distillation(TAKD)</strong> Mirzadeh S-l等人的工作[13]指出KD并非总是effective。当教师网络与学生网络的模型大小差距太大的时候，KD会失效，学生网络的性能会下降。作者在教师网络和学生网络之间，引入助教网络，如图所示。TAKD的原理，简单而言，教师网络和助教网络之间进行知识蒸馏，助教网络和学生网络之间再进行知识蒸馏，即多步蒸馏（multi-step knowledge distillation）。</p>
+<p><img src="https://raw.githubusercontent.com/chenxli/ImgStg/main/20230811004059.png" /></p>
+<p><strong>(ICCV 2019) On the Efficacy of Knowledge Distillation</strong> Cho和Hariharan的工作[14]关注KD的有效性，得到的结论是：<strong>教师网络精度越高，并不意味着学生网络精度越高</strong>。这个结论和Mirzadeh S-l等人的工作[13]是一致的。mismatched capacity使得学生网络不能稳定地模仿教师网络。有趣的是，Cho和Hariharan的工作认为上述TAKD的多步蒸馏并非有效，提出应该采取的措施是提前停止教师网络的训练。</p>
+<p><strong>（ICCV 2019） A Comprehensive Overhaul of Feature Distillation</strong> Heo等人的工作[15]关注特征蒸馏，这区别于Hinton等人的工作：暗知识或输出蒸馏。隐层特征值/中间表示蒸馏从FitNets开始。这篇关注特征蒸馏的论文迁移两种知识，第一种是<strong>after ReLU之后的特征响应大小（magnitude）</strong>;第二种是每一个<strong>神经元的激活状态（activation status）</strong>。以ResNet50为学生网络，ResNet152为教师网络，使用作者的特征蒸馏方法，学生网络ResNet50(student)从76.16提升到78.35，并超越教师网络ResNet152的78.31（Top-1 in ImageNet）。另外，这篇论文在<strong>通用分类、检测和分割</strong>三大基础任务上进行了实验。Heo等人先前在AAAI2019上提出基于<strong>激活边界（activation boundaries）</strong> 的知识蒸馏[16]。</p>
+<p><strong>（ICCV 2019）Distillation Knowledge from a Deep Pose Regressor Network</strong> Saputra等人的工作[17]对用于<strong>回归任务</strong>的网络进行知识蒸馏有一定的实践指导价值。</p>
+<p><strong>（arXiv 2019）Route Constrained Optimization(RCO)</strong> Jin和Peng等人的工作[18]受<strong>课程学习（curriculum learning）</strong> 启发，并且知道学生和教师之间的gap很大导致蒸馏失败，提出<strong>路由约束提示学习（Route Constrained Hint Learning）</strong>，如图所示。简单而言，我们训练教师网络的时候，会有一些中间模型即checkpoint，RCO论文称为anchor points，这些中间模型的性能是不同的。因此，学生网络可以一步一步地根据这些中间模型慢慢学习，从easy-to-hard。另外，这篇论文在开集<strong>人脸识别</strong>数据集MegaFace上做了实验，以0.8MB参数，在<span class="math inline">\(1:10^6\)</span>任务上取得了84.3%的准确率。</p>
+<p><img src="https://raw.githubusercontent.com/chenxli/ImgStg/main/20230811004135.png" /></p>
+<p><strong>（arXiv 2019） Architecture-aware Knowledge Distillatioon(AKD)</strong> Liu等人的工作[19]指出给定教师网络，有最好的学生网络，即不仅对教师网络的权重进行蒸馏，而且对教师网络的结构进行蒸馏从而得到学生网络。(Rethinking the Value of Network Pruning这篇文章也指出剪枝得到的网络可以从头开始训练，取得不错的性能，表明搜索/剪枝得到的网络结构是挺重要的。)</p>
+<p><strong>（ICML 2019）Towards Understanding Knowledge Distillation</strong> Phuong和Lampert的工作[19]研究线性分类层（层数等于1）和深度线性网络（层数大于2），回答了<strong>学生模型在学习什么？（What Does the Student Learn？）</strong>，学生模型学习得多？(How Fast Does the Student Learn? )，并从Data Geometry，Optimization Bias， Strong Monotonicity（单调性）三个方面解释<strong>蒸馏为什么工作？（Why Does Distillation Work）</strong>。</p>
+<p><strong>（ICLR2016）Unifying Distillation and Privileged Information</strong> Lopez-Paz等人的工作[21]联合了两种取得机器之间可以互相学习的技术：蒸馏和特权信息，提出新的框架广义蒸馏（generalized distillation），是一篇从理论上解释蒸馏的论文。</p>
+<p><strong>（ICML 2018）Born-Again Neural Networks</strong> BANs不算模型压缩，因为学生模型容量与教师容量相等。但是Furlanello等人[22]发现以KD的方式去训练模型容量相等的学生网络，会超越教师网络，称这样的学生网络为大师网络。这一发现真让人惊讶！与Hinton理解暗知识不同，BANs的作者Furlanello等人，认为软目标分布起作用，是因为它是重要性采样权重。</p>
+<p><strong>（ICLR 2018）Apprentice</strong> 学徒[23]利用KD技术提升低精度网络的分类性能，结合量化和蒸馏两种技术。引入量化，那么教师网络就是高精度网络，并且带非量化参数，而学徒网络就是低精度网络，带量化参数。</p>
+<p><strong>(ICLR 2018) Model Compression via Distillation and Quantization</strong> 这个工作[24]同Apprentice类似，希望获得浅层和量化的小型网络，结合量化和蒸馏两种技术。</p>
+<p><strong>（CVPR 2019）Structured Knowledge Distillation</strong> Liu等人的工作[25-26]整合了暗知识的逐像素蒸馏（pixel-wise distillation）、马尔科夫随机场的逐配对/特征块蒸馏（pair-wise distillation）和有条件生成对抗网络的整体蒸馏（holistic distillation），如图所示，用于密集预测任务：语义分割、深度估计和物体检测。</p>
+<p><img src="https://raw.githubusercontent.com/chenxli/ImgStg/main/20230811004221.png" /></p>
+<h5 id="参考文献">参考文献</h5>
+<p>[1] Hinton G, Vinyals O, Dean J. <strong>Distilling the Knowledge in a Neural Network</strong> NIPSW 2014 [[<a href="https://link.zhihu.com/?target=https%3A//arxiv.org/abs/1503.02531">paper</a>]]</p>
+<p>[2] Bucilua C, Caruana R, Niculescu-Mizil A. <strong>Model Compression</strong> ACM ICKDD 2006 [[<a href="https://link.zhihu.com/?target=https%3A//www.cs.cornell.edu/~caruana/compression.kdd06.pdf">paper</a>]]</p>
+<p>[3] Li J, Zhao R, Huang J-T, Gong Y. <strong>Learning Small-Size DNN with Output-Distribution-Based Criteria</strong> InterSpeech 2014 [[<a href="https://link.zhihu.com/?target=https%3A//www.isca-speech.org/archive/interspeech_2014/i14_1910.html">paper</a>]]</p>
+<p>[4] Ba L J, Caruana R. <strong>Do Deep Nets Really Need to be Deep?</strong> NIPS 2014 [[<a href="https://link.zhihu.com/?target=http%3A//papers.nips.cc/paper/5484-do-deep-nets-really-need-to-be-deep">paper</a>]]</p>
+<p>[5] Romero A, Ballas N, Kahou S E, Chassang A, Gatta C, Bengio Y. <strong>FitNets Hints for Thin Deep Nets</strong> ICLR 2015 [[<a href="https://link.zhihu.com/?target=https%3A//arxiv.org/abs/1412.6550">paper</a>]]</p>
+<p>[6] Zagoruyko S, Komodakis N. <strong>Paying More Attention to Attention Improving the Performance of Convolutional Neural Networks via Attention Transfer</strong> ICLR 2017 [[<a href="https://link.zhihu.com/?target=https%3A//openreview.net/forum%3Fid%3DSks9_ajex">paper</a>]] [[<a href="https://link.zhihu.com/?target=https%3A//github.com/szagoruyko/attention-transfer">code</a>]]</p>
+<p>[7] Simonyan K, Vedaldi A, Zisserman Z. <strong>Deep Inside Convolutional Networks: Visualising Image Classification Models and Saliency Maps</strong> ICLRW 2014 [[<a href="https://link.zhihu.com/?target=https%3A//arxiv.org/abs/1312.6034">paper</a>]]</p>
+<p>[8] Chen G, Choi W,Yu X, Han T, Chandraker M. <strong>Learning Efficient Object Detection Models with Knowledge Distillation</strong> NIPS 2017 [[paper]]</p>
+<p>[9] Huang Z, Wang N. <strong>Like What You Like Knowledge Distill via Neuron Selectivity Transfer</strong> arXiv 2017 [[<a href="https://link.zhihu.com/?target=https%3A//arxiv.org/abs/1707.01219">paper</a>]]</p>
+<p>[10] Chen Y, Wang N, Zhang Z. <strong>DarkRank Accelerating Deep Metric Learning via Cross Sample Similarities Transfer</strong> AAAI 2018 [[<a href="https://link.zhihu.com/?target=https%3A//arxiv.org/abs/1707.01220">paper</a>]]</p>
+<p>[11] Yim J, Joo D, Bae J, Kim J. <strong>A Gift from Knowledge Distillation Fast Optimization, Network Minimization and Transfer Learning</strong> CVPR 2017 [[<a href="https://link.zhihu.com/?target=http%3A//openaccess.thecvf.com/content_cvpr_2017/html/Yim_A_Gift_From_CVPR_2017_paper.html">paper</a>]]</p>
+<p>[12] Tian Y, Krishnan D, Isola P. <strong>Contrastive Representation Distillation</strong> arXiv 2019 [[<a href="https://link.zhihu.com/?target=https%3A//arxiv.org/abs/1910.10699">paper</a>]] [[<a href="https://link.zhihu.com/?target=https%3A//github.com/HobbitLong/RepDistiller">code</a>]]</p>
+<p>[13] Mirzadeh S-I, Farajtabar M, Li A, Ghasemzadeh H. <strong>Improved Knowledge Distillation via Teacher Assistant Bridging the Gap Between Student and Teacher</strong> arXiv 2019 [[<a href="https://link.zhihu.com/?target=https%3A//arxiv.org/abs/1902.03393">paper</a>]]</p>
+<p>[14] Cho J H, Hariharan B. <strong>On the Efficacy of Knowledge Distillation</strong> ICCV 2019 [[<a href="https://link.zhihu.com/?target=https%3A//arxiv.org/abs/1910.01348">paper</a>]]</p>
+<p>[15] Heo B, Kim J, Yun S, Park H, Kwak N, Choi J Y. <strong>A Comprehensive Overhaul of Feature Distillation</strong> ICCV 2019 [[<a href="https://link.zhihu.com/?target=https%3A//arxiv.org/abs/1904.01866">paper</a>]]</p>
+<p>[16] Heo B, Lee M, Yun S, Choi J Y. <strong>Knowledge Transfer via Distillation of Activation Boundaries Formed by Hidden Neurons</strong> AAAI 2019 [[<a href="https://link.zhihu.com/?target=https%3A//www.aaai.org/ojs/index.php/AAAI/article/view/4264">paper</a>]]</p>
+<p>[17] Saputra M R U, de Gusmao P P B, Almalioglu Y, Markham A, Trigoni N. <strong>Distilling Knowledge from a Deep Pose Regressor Network</strong> ICCV 2019 [[<a href="https://link.zhihu.com/?target=http%3A//openaccess.thecvf.com/content_ICCV_2019/html/Saputra_Distilling_Knowledge_From_a_Deep_Pose_Regressor_Network_ICCV_2019_paper.html">paper</a>]]</p>
+<p>[18] Jin X., Peng B, Wu Y, Liu Y, Liu J, Liang D, Yan J, Hu X. <strong>Knowledge Distillation via Route Constrained Optimization</strong> arXiv 2019 [[<a href="https://link.zhihu.com/?target=https%3A//arxiv.org/abs/1904.09149">paper</a>]]</p>
+<p>[19] Liu Y, Jia X, Tan M, Vemulapalli R, Zhu Y, Green B, Wang X. <strong>Search to Distill Pearls are Everywhere but not the Eyes</strong> arXiv 2019 [[<a href="https://link.zhihu.com/?target=https%3A//arxiv.org/abs/1911.09074">paper</a>]]</p>
+<p>[20] Phuong M, Lampert C. <strong>Towards Understanding Knowledge Distillation</strong> ICML 2019 [[<a href="https://link.zhihu.com/?target=http%3A//proceedings.mlr.press/v97/phuong19a.html">paper</a>]] (研究蒸馏理论)</p>
+<p>[21] Lopez-Paz D, Bottou L, Schölkopf B, Vapnik V. <strong>Unifying Distillation and Privileged Information</strong> ICLR 2016 [[<a href="https://link.zhihu.com/?target=https%3A//arxiv.org/abs/1511.03643">paper</a>]] (研究蒸馏理论)</p>
+<p>[22] Furlanello T, Lipton Z, Tschannen M, Itti L, Anandkumar A. <strong>Born-Again Neural Networks ICML</strong> 2018 [[<a href="https://link.zhihu.com/?target=http%3A//proceedings.mlr.press/v80/furlanello18a.html">paper</a>]]</p>
+<p>[23] Mishra A, Marr D. <strong>Apprentice Using Knowledge Distillation Techniques To Improve Low-Precision Network Accuracy</strong> ICLR 2018 [[<a href="https://link.zhihu.com/?target=https%3A//openreview.net/forum%3Fid%3DB1ae1lZRb">paper</a>]]</p>
+<p>[24] Polino A, Pascanu R, Alistarh D. <strong>Model Compression via Distillation and Quantization</strong> ICLR 2018 [[<a href="https://link.zhihu.com/?target=https%3A//openreview.net/forum%3Fid%3DS1XolQbRW">paper</a>]]</p>
+<p>[25] Liu Y, Chen K, Liu C, Qin Z, Luo Z, Wang J. <strong>Structured Knowledge Distillation for Semantic Segmentation</strong> CVPR 2019 [[<a href="https://link.zhihu.com/?target=http%3A//openaccess.thecvf.com/content_CVPR_2019/html/Liu_Structured_Knowledge_Distillation_for_Semantic_Segmentation_CVPR_2019_paper.html">paper</a>]] [[<a href="https://link.zhihu.com/?target=https%3A//github.com/irfanICMLL/structure_knowledge_distillation">code</a>]]</p>
+<p>[26] Liu Y, Shu C, Wang J, Shen C. <strong>Structured Knowledge Distillation for Dense Prediction</strong> arXiv 2019 [[<a href="https://link.zhihu.com/?target=https%3A//arxiv.org/abs/1903.04197">paper</a>]]</p>
+]]></content>
+      <categories>
+        <category>深度学习</category>
+      </categories>
+      <tags>
+        <tag>蒸馏</tag>
+        <tag>计算机视觉</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>对比学习在推荐系统中的应用</title>
     <url>/2023/08/07/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0%E5%9C%A8%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/</url>
     <content><![CDATA[<h3 id="引言">引言</h3>
@@ -10,7 +82,7 @@
 <ol type="1">
 <li><p>损失函数</p>
 <ul>
-<li><p>NCE（noise-contrastive estimation）：是估计统计模型的参数的一种方法，主要通过学习数据分布和噪声分布之间的区别。原始的NCE只包含一个正负样本对。广义的NCE包含多个正样本或负样本。下式中，<span class="math inline">\(x\)</span>表示数据，<span class="math inline">\(y\)</span>表示噪声。</p>
+<li><p>NCE（noise-contrastive estimation）：是估计统计模型的参数的一种方法，主要通过学习数据分布和噪声分布之间的区别。原始的NCE只包含一个正负样本对。广义的NCE包含多个正样本或负样本。下式中，<span class="math inline">\(x\)</span>表示数据，<span class="math inline">\(y\)</span>表示噪声。 <img src="https://raw.githubusercontent.com/chenxli/ImgStg/main/20230811000018.png" alt="img" /></p>
 <p><span class="math inline">\(J_T(\theta)=\frac{1}{2T}\sum\limits_t \ln[h(x_t;\theta)]+\ln[1-h(y_t;\theta)]\)</span></p>
 <p>其中：</p>
 <p><span class="math inline">\(h(\bold{u};\theta)=\frac{1}{1+exp[-G(\bold{u};\theta)]}\)</span></p>
@@ -29,8 +101,8 @@
 <li><p>uniformity：衡量特征向量在超球体上的分布的均匀性</p></li>
 </ul>
 <p>两种性质的评价指标，优化这两个指标能使得下游任务表现更好。</p>
-<p><span class="math inline">\(\mathcal{L}(f;\alpha)\triangleq \mathbb{E}_{(x,y)\sim p_{pos}}[\|f(x)-f(y)\|_2^{\alpha}]\)</span></p>
-<p><span class="math inline">\(\mathcal{L}_{uniform}(f;t)\triangleq \log \mathbb{E}_{ {x,y}\mathop{\sim}\limits^{i.i.d.P}P_{data} }[e^{-t\|f(x)-f(y)\|^2_2}]\)</span></p></li>
+<p><span class="math display">\[\mathcal{L}(f;\alpha)\triangleq \mathbb{E}_{(x,y)\sim p_{pos}}[\|f(x)-f(y)\|_2^{\alpha}]\]</span></p>
+<p><span class="math display">\[\mathcal{L}_{uniform}(f;t)\triangleq \log \mathbb{E}_{ {x,y}\mathop{\sim}\limits^{i.i.d.P}P_{data} }[e^{-t\|f(x)-f(y)\|^2_2}]\]</span></p></li>
 <li><p>关键技术</p>
 <ul>
 <li><p>正负样本的构造</p>
